@@ -1,0 +1,44 @@
+Copyright 2001-2006 Sun Microsystems, Inc. 901 San Antonio Road, Palo Alto,
+California, 94303, U.S.A. All rights reserved.
+
+Sun Microsystems, Inc. has intellectual property rights relating to
+technology embodied in this product. In particular, and without
+limitation, these intellectual property rights may include one or more
+of the U.S. patents listed at http://www.sun.com/patents and one or
+more additional patents or pending patent applications in the U.S. and
+other countries. This product is distributed under licenses
+restricting its use, copying, distribution, and decompilation. No part
+of this product may be reproduced in any form by any means without
+prior written authorization of Sun and its licensors, if any. Third
+party software, including font technology, is copyrighted and licensed
+from Sun suppliers. Sun, the Sun logo, and Sun Microsystems are
+trademarks or registered trademarks of Sun Microsystems, Inc. in the
+U.S. and other countries. This product includes software developed by
+the Apache Software Foundation (http://www.apache.org/). Federal
+Acquisitions: Commercial Software - Government Users Subject to
+Standard License Terms and Conditions.
+
+----------------------------------------------------------------------
+
+Copyright 2001-2006 Sun Microsystems, Inc., 901 San Antonio Road, Palo
+Alto, Californie 94303 ?tats-Unis. Tous droits r?serv?s. Distribue?
+par des licences qui en restreignent l'utilisation. Sun Microsystems,
+Inc. a les droits de propri?t? intellectuels relatants ? la
+technologie incorpor?e dans ce produit. En particulier, et sans la
+limitation, ces droits de propri?t? intellectuels peuvent inclure un
+ou plus des brevets am?ricains ?num?r?s ? http://www.sun.com/patents
+et un ou les brevets plus suppl?mentaires ou les applications de
+brevet en attente dans les Etats Unis et les autres pays. Ce produit
+ou document est prot?g? par un copyright et distribu? avec des
+licences qui en restreignent l'utilisation, la copie, la distribution,
+et la d?compilation. Aucune partie de ce produit ou document ne peut
+?tre reproduite sous aucune forme, par quelque moyen que ce soit, sans
+l'autorisation pr?alable et ?crite de Sun et de ses bailleurs de
+licence, s'il y en a. Le logiciel d?tenu par des tiers, et qui
+comprend la technologie relative aux polices de caract?res, est
+prot?g? par un copyright et licenci? par des fournisseurs de Sun. Sun,
+le logo Sun, Sun Microsystems et sont des marques de fabrique ou des
+marques d?pos?es de Sun Microsystems, Inc. aux Etats-Unis et dans
+d'autres pays. Ce produit inclut le logiciel d?velopp? par la base de
+Apache Software Foundation (http://www.apache.org/). L'accord du
+gouvernement des ?tats Unis est requis avant l'exportation du produit.
