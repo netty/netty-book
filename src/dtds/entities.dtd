@@ -25,12 +25,12 @@
 
 <!-- Frequently used URLs -->
 
-<!ENTITY Home       "http://www.jboss.org/netty/">
-<!ENTITY Downloads  "&Home;downloads.html">
-<!ENTITY Community  "&Home;community.html">
-<!ENTITY DocHome    "http://docs.jboss.org/netty/3.2/">
-<!ENTITY API        "&DocHome;api/org/jboss/netty/">
-<!ENTITY XRef       "&DocHome;xref/org/jboss/netty/">
+<!ENTITY Home       "http://netty.io/">
+<!ENTITY Downloads  "&Home;downloads/">
+<!ENTITY Community  "&Home;community/">
+<!ENTITY DocHome    "&Home;docs/">
+<!ENTITY API        "&DocHome;stable/api/org/jboss/netty/">
+<!ENTITY XRef       "&DocHome;stable/xref/org/jboss/netty/">
 
 <!-- Types in the bootstrap package -->
 
