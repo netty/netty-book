@@ -443,9 +443,9 @@ ch.close();</programlisting>
       </callout>
     </calloutlist>
     <para>
-      To test if our time server works as expected, you can use the UNIX `rdate` command:
+      To test if our time server works as expected, you can use the UNIX <command>rdate</command> command:
       <programlisting>$ rdate -o &lt;port&gt; -p &lt;host&gt;</programlisting>
-      where port is the port number you specified in the main() method and host is usually 'localhost'.
+      where port is the port number you specified in the <methodname>main()</methodname> method and host is usually <literal>localhost</literal>.
     </para>
   </section>
   
