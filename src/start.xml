@@ -338,7 +338,7 @@ public class TimeServerHandler extends &SimpleChannelHandler; {
         &Channel; ch = e.getChannel();
         
         &ChannelBuffer; time = &ChannelBuffers;.buffer(4);<co xml:id="example.time.co2"/>
-        time.writeInt((int) (System.currentTimeMillis() / 1000));
+        time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
         
         &ChannelFuture; f = ch.write(time);<co xml:id="example.time.co3"/>
         
@@ -442,6 +442,11 @@ ch.close();</programlisting>
         </para>
       </callout>
     </calloutlist>
+    <para>
+      To test if our time server works as expected, you can use the UNIX `rdate` command:
+      <programlisting>$ rdate -o &lt;port&gt; -p &lt;host&gt;</programlisting>
+      where port is the port number you specified in the main() method and host is usually 'localhost'.
+    </para>
   </section>
   
   <section>
