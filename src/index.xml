@@ -20,7 +20,7 @@
 ]>
 <book xmlns="http://docbook.org/ns/docbook"
       xmlns:xi="http://www.w3.org/2001/XInclude">
-  <title>The Netty Project 3.2 User Guide</title>
+  <title>The Netty Project 3.x User Guide</title>
   <subtitle>The Proven Approach to Rapid Network Application Development</subtitle>
   <!--
   <toc/>
