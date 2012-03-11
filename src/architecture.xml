@@ -78,7 +78,8 @@
     </para>
     <para>
       For more information, please refer to the
-      <link xlink:href="&API;buffer/package-summary.html#package_description">org.jboss.netty.buffer</link> package description.
+      <link xlink:href="&API;buffer/package-summary.html#package_description">org.jboss.netty.buffer</link> 
+      package description.
     </para>
     <section>
       <title>Zero Copy</title>
@@ -267,7 +268,7 @@
     </para>
 
     <section>
-      <title>Codec framework</title>
+      <title>Codec Framework</title>
       <para>
         As demonstrated in <xref linkend="start.pojo"/>, it is always a good
         idea to separate a protocol codec from business logic. However, there
@@ -334,8 +335,7 @@
           <listitem>
             <para>
               Chat server that requires persistent connections and server push
-              technology (e.g. <link xlink:href="http://en.wikipedia.org/wiki/Comet_%28programming%29">Comet</link>
-              and <link xlink:href="http://en.wikipedia.org/wiki/WebSockets">WebSockets</link>)
+              technology (e.g. <link xlink:href="http://en.wikipedia.org/wiki/Comet_%28programming%29">Comet</link>)
             </para>
           </listitem>
           <listitem>
@@ -357,6 +357,24 @@
             </para>
           </listitem>
         </itemizedlist>
+      </para>
+    </section>
+
+    <section>
+      <title>WebSockets Implementation</title>
+      <para>
+        <link xlink:href="http://en.wikipedia.org/wiki/WebSockets">WebSockets</link> allows for a bi-directional, 
+        full-duplex communications channels, over a single Transmission Control Protocol (TCP) socket. 
+        It is designed to allow streaming of data between a web browser and a web server.
+      </para>
+      <para>
+        The WebSocket protocol has been standardized by the IETF as <link xlink:href="http://tools.ietf.org/html/rfc6455">RFC 6455</link>. 
+      </para>
+      <para>
+        Netty implementes RFC 6455 and a number of older versions of the specification. Please refer to the 
+        <link xlink:href="&API;handler/codec/http/websocketx/package-summary#package_description">
+        org.jboss.netty.handler.codec.http.websocketx</link> package and associated 
+        <link xlink:href="&XRef;example/http/websocketx/server/package-summary.html">examples</link>.
       </para>
     </section>
 
