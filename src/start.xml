@@ -1158,9 +1158,16 @@ public class TimeServer {
     </title>
     <para>
       In this chapter, we had a quick tour of Netty with a demonstration on how
-      to write a fully working network application on top of Netty.  More
-      questions you may have will be covered in the upcoming chapters and the
-      revised version of this chapter.  Please also note that the
+      to write a fully working network application on top of Netty.  
+    </para>
+    <para>      
+      There is more detailed information about Netty in the upcoming chapters. We
+      also encourage you to review the Netty examples in the 
+      <link xlink:href="https://github.com/netty/netty/tree/3.2/src/main/java/org/jboss/netty/example">org.jboss.netty.example</link>
+      package.
+    </para>
+    <para>      
+      Please also note that the
       <link xlink:href="&Community;">community</link> is always waiting for your
       questions and ideas to help you and keep improving Netty based on your
       feed back.
