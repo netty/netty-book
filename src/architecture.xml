@@ -37,6 +37,10 @@
     stack on top of the core.  Please keep this diagram in mind as you read this
     chapter.
   </para>
+  <para>
+    Also keep in mind that a lot of the detailed documentation is in the javadoc.
+    Please click on links to class names and package names.
+  </para>
 
   <section>
     <title>Rich Buffer Data Structure</title>
