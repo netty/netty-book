@@ -78,8 +78,59 @@
     </para>
     <para>
       For more information, please refer to the
-      <link xlink:href="&API;buffer/package-summary.html#package_description"><literal>org.jboss.netty.buffer</literal> package description</link>.
+      <link xlink:href="&API;buffer/package-summary.html#package_description">org.jboss.netty.buffer</link> package description.
     </para>
+    <section>
+      <title>Zero Copy</title>
+      <para>
+        Traditionally, writing data to the network usually involves context switches between kernel and user space.
+      </para>
+      <mediaobject>
+        <imageobject>
+        <imagedata fileref="images/traditional-copy.png" format="PNG" scale="50" scalefit="1" align="center" />
+        </imageobject>
+        <textobject>
+          <phrase>Traditional Approach for Copying Data to the Network.</phrase>
+        </textobject>
+      </mediaobject>
+      <para>
+        Netty supports the zero-copy approach where the kernel handles the copy process via 
+        Direct Memory Access (DMA).  There is no copying between kernelspace and userspace resulting in lower 
+        load on the CPU and bus system.
+      </para>
+      <mediaobject>
+        <imageobject>
+        <imagedata fileref="images/zero-copy.png" format="PNG" scale="50" scalefit="1" align="center" />
+        </imageobject>
+        <textobject>
+          <phrase>Zero-Copy Approach for Copying Data to the Network.</phrase>
+        </textobject>
+      </mediaobject>
+    </section>    
+    <section>
+      <title>Combining and Slicing ChannelBuffers</title>
+      <para>
+        When transfering data between communication layers, data often needs to be combined or sliced.
+        For example, if a payload is split over multiple packages, it often needs to be be combined 
+        for decoding.
+      </para>
+      <para>
+        Tranditionally, data from the multiple packages are combined by coping them into a new 
+        byte buffer. 
+      </para>
+      <para>
+        Netty supports a zero-copy approach where by a &ChannelBuffer; "points" to the required
+        buffers hence eliminating the need to perform a copy.
+      </para>
+      <mediaobject>
+        <imageobject>
+        <imagedata fileref="images/combine-slice-buffer.png" format="PNG" scale="50" scalefit="1" align="center" />
+        </imageobject>
+        <textobject>
+          <phrase>Combining and Slicing ChannelBuffers</phrase>
+        </textobject>
+      </mediaobject>
+    </section>    
   </section>
 
   <section>
