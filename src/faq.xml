@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright 2011 The Netty Project
+ *
+ * The Netty Project licenses this file to you under the Apache License,
+ * version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at:
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+-->
+<!DOCTYPE preface SYSTEM "../lib/schema-5.1b4/dtd/docbook.dtd" [
+<!ENTITY % Entities SYSTEM "dtds/entities.dtd">
+%Entities;
+]>
+<preface xmlns="http://docbook.org/ns/docbook"
+         xml:id="faq">
+  <title>Frequently Asked Questions</title>
+
+  <section>
+    <title>When can I write downstream data?</title>
+    <para>
+      As long as you have the reference to the Channel (or ChannelHandlerContext), you can call Channel.write() 
+      (or Channels.write()) from anywhere, any thread.
+    </para>
+    <para>
+      writeRequested() is called when you trigger the writeRequested event by calling Channel.write() or 
+      calling ChannelHandlerContext.sendDownstream(MessageEvent).
+    </para>
+    <para>
+       See <link xlink:href="http://stackoverflow.com/questions/3222134/how-does-downstream-events-work-in-jbosss-netty">
+       discussion</link>.
+    </para>
+  </section>
+  
+  <section>
+    <title>How do I incorporate my blocking application code with the non-blocking NioServerSocketChannelFactory?</title>
+    <para>
+      &NioServerSocketChannelFactory; uses boss threads and worker threads.
+    </para>
+    <para>
+      Boss threads are responsible for accepting incoming connections while worker threads are reponsible for 
+      performing non-blocking read and write for associated channels.  The default number of worker threads in the 
+      pool is 2 * the number of available processors.
+    </para>
+    <para>
+      If your applicaiton's handler blocks such as (reading from a database) or is CPU intensive, the worker thread 
+      pool maybe exhausted and performance will degrade.
+    </para>
+    <para>
+      We recommend that you implement your blocking application code in another thread pool.  You can do this by adding
+      OrderedMemoryAwareThreadPoolExecutor to the the channel pipeline before your handler or implement your own.
+    </para>
+    <programlisting>public static void main(String[] args) throws Exception {
+        OrderedMemoryAwareThreadPoolExecutor eventExecutor =
+            new OrderedMemoryAwareThreadPoolExecutor(
+                    5, 1000000, 10000000, 100,
+                    TimeUnit.MILLISECONDS);
+                    
+        ServerBootstrap bootstrap = new ServerBootstrap(
+                new NioServerSocketChannelFactory(
+                        Executors.newCachedThreadPool(),
+                        Executors.newCachedThreadPool()));
+ 
+        sb.setPipelineFactory(new MyPipelineFactory(eventExecutor));
+        sb.bind(socketAddress);
+        
+        // Other code
+
+        return;               
+    }
+    
+    public class MyPipelineFactory implements ChannelPipelineFactory {
+    @Override
+    public ChannelPipeline getPipeline() throws Exception {
+        // Create a default pipeline implementation.
+        ChannelPipeline pipeline = pipeline();
+
+        pipeline.addLast("decoder", new HttpRequestDecoder());
+        pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
+        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+        
+        // Insert OrderedMemoryAwareThreadPoolExecutor before your blocking handler
+        pipeline.addLast("pipelineExecutor", new ExecutionHandler(_pipelineExecutor));
+        
+        // MyHandler contains code that blocks
+        pipeline.addLast("handler", new MyHandler());
+        
+        return pipeline;
+    }
+    
+    public class MyHandler extends SimpleChannelUpstreamHandler {
+        // Your blocking application code
+}</programlisting>
+  </section>
+  
+  <section>
+    <title>Do I need to synchronize my handler code given that events can happen at the same time?</title>
+    <para>
+      Your &ChannelUpstreamHandler; will be invoked sequentially by the same thread (i.e. an I/O thread) and 
+      therefore a handler does not need to worry about being invoked with a new upstream event before the 
+      previous upstream event is finished.
+    </para>
+    <para>
+      However, downstream events can be fired by more than one thread simultaneously. If your &ChannelDownstreamHandler;  
+      accesses a shared resource or stores stateful information, you might need proper synchronization.
+    </para>
+    <para>
+       See <link xlink:href="http://stackoverflow.com/questions/8655674/is-netty-receive-events-concurrency-how-about-downstream-and-upsream-events">
+       discussion</link>.
+    </para>
+  </section>
+  
+  <section>
+    <title>How do I pass data between handlers in the same Channel?</title>
+    <para>
+      Use ChannelLocal.
+    </para>
+    <programlisting>
+    // Declare
+    public static final ChannelLocal&lt;int&gt; data = new ChannelLocal&lt;int&gt;();
+
+    // Set
+    data.set(e.getChannel(), 1);
+
+    // Get
+    int a = data.get(e.getChannel());
+</programlisting>
+    <para>
+       See <link xlink:href="http://stackoverflow.com/questions/8449663/usage-of-nettys-channellocal">
+       discussion</link>.
+    </para>
+  </section>
+</preface>

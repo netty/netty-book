@@ -29,4 +29,5 @@
   <xi:include href="preface.xml" />
   <xi:include href="start.xml" />
   <xi:include href="architecture.xml" />
+  <xi:include href="faq.xml" />
 </book>
