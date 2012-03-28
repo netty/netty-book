@@ -82,36 +82,8 @@
     </para>
     <para>
       For more information, please refer to the
-      <link xlink:href="&API;buffer/package-summary.html#package_description">org.jboss.netty.buffer</link> 
-      package description.
+      <link xlink:href="&API;buffer/package-summary.html#package_description"><literal>org.jboss.netty.buffer</literal> package description</link>.
     </para>
-    <section>
-      <title>Zero Copy</title>
-      <para>
-        Traditionally, writing data to the network usually involves context switches between kernel and user space.
-      </para>
-      <mediaobject>
-        <imageobject>
-        <imagedata fileref="images/traditional-copy.png" format="PNG" scale="50" scalefit="1" align="center" />
-        </imageobject>
-        <textobject>
-          <phrase>Traditional Approach for Copying Data to the Network.</phrase>
-        </textobject>
-      </mediaobject>
-      <para>
-        Netty supports the zero-copy approach where the kernel handles the copy process via 
-        Direct Memory Access (DMA).  There is no copying between kernelspace and userspace resulting in lower 
-        load on the CPU and bus system.
-      </para>
-      <mediaobject>
-        <imageobject>
-        <imagedata fileref="images/zero-copy.png" format="PNG" scale="50" scalefit="1" align="center" />
-        </imageobject>
-        <textobject>
-          <phrase>Zero-Copy Approach for Copying Data to the Network.</phrase>
-        </textobject>
-      </mediaobject>
-    </section>    
     <section>
       <title>Combining and Slicing ChannelBuffers</title>
       <para>
@@ -272,7 +244,7 @@
     </para>
 
     <section>
-      <title>Codec Framework</title>
+      <title>Codec framework</title>
       <para>
         As demonstrated in <xref linkend="start.pojo"/>, it is always a good
         idea to separate a protocol codec from business logic. However, there

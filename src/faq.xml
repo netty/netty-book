@@ -22,6 +22,11 @@
          xml:id="faq">
   <title>Frequently Asked Questions</title>
 
+  <para>
+     This FAQ is a summary of question and answers from <link xlink:href="http://stackoverflow.com/questions/tagged/netty?sort=faq">
+     StackOverflow</link>.
+  </para>
+
   <section>
     <title>When can I write downstream data?</title>
     <para>
