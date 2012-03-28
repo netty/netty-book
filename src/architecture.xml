@@ -37,6 +37,10 @@
     stack on top of the core.  Please keep this diagram in mind as you read this
     chapter.
   </para>
+  <para>
+    Also keep in mind that a lot of the detailed documentation is in the javadoc.
+    Please click on links to class names and package names.
+  </para>
 
   <section>
     <title>Rich Buffer Data Structure</title>
@@ -80,6 +84,30 @@
       For more information, please refer to the
       <link xlink:href="&API;buffer/package-summary.html#package_description"><literal>org.jboss.netty.buffer</literal> package description</link>.
     </para>
+    <section>
+      <title>Combining and Slicing ChannelBuffers</title>
+      <para>
+        When transfering data between communication layers, data often needs to be combined or sliced.
+        For example, if a payload is split over multiple packages, it often needs to be be combined 
+        for decoding.
+      </para>
+      <para>
+        Tranditionally, data from the multiple packages are combined by coping them into a new 
+        byte buffer. 
+      </para>
+      <para>
+        Netty supports a zero-copy approach where by a &ChannelBuffer; "points" to the required
+        buffers hence eliminating the need to perform a copy.
+      </para>
+      <mediaobject>
+        <imageobject>
+        <imagedata fileref="images/combine-slice-buffer.png" format="PNG" scale="50" scalefit="1" align="center" />
+        </imageobject>
+        <textobject>
+          <phrase>Combining and Slicing ChannelBuffers</phrase>
+        </textobject>
+      </mediaobject>
+    </section>    
   </section>
 
   <section>
@@ -283,8 +311,7 @@
           <listitem>
             <para>
               Chat server that requires persistent connections and server push
-              technology (e.g. <link xlink:href="http://en.wikipedia.org/wiki/Comet_%28programming%29">Comet</link>
-              and <link xlink:href="http://en.wikipedia.org/wiki/WebSockets">WebSockets</link>)
+              technology (e.g. <link xlink:href="http://en.wikipedia.org/wiki/Comet_%28programming%29">Comet</link>)
             </para>
           </listitem>
           <listitem>
@@ -306,6 +333,24 @@
             </para>
           </listitem>
         </itemizedlist>
+      </para>
+    </section>
+
+    <section>
+      <title>WebSockets Implementation</title>
+      <para>
+        <link xlink:href="http://en.wikipedia.org/wiki/WebSockets">WebSockets</link> allows for a bi-directional, 
+        full-duplex communications channels, over a single Transmission Control Protocol (TCP) socket. 
+        It is designed to allow streaming of data between a web browser and a web server.
+      </para>
+      <para>
+        The WebSocket protocol has been standardized by the IETF as <link xlink:href="http://tools.ietf.org/html/rfc6455">RFC 6455</link>. 
+      </para>
+      <para>
+        Netty implementes RFC 6455 and a number of older versions of the specification. Please refer to the 
+        <link xlink:href="&API;handler/codec/http/websocketx/package-summary#package_description">
+        org.jboss.netty.handler.codec.http.websocketx</link> package and associated 
+        <link xlink:href="&XRef;example/http/websocketx/server/package-summary.html">examples</link>.
       </para>
     </section>
 
