@@ -92,7 +92,7 @@
         for decoding.
       </para>
       <para>
-        Tranditionally, data from the multiple packages are combined by coping them into a new 
+        Traditionally, data from the multiple packages are combined by copying them into a new 
         byte buffer. 
       </para>
       <para>
