@@ -48,7 +48,7 @@
       Netty uses its own buffer API instead of NIO <classname>ByteBuffer</classname>
       to represent a sequence of bytes. This approach has significant advantages
       over using <classname>ByteBuffer</classname>.  Netty's new buffer type,
-      &ChannelBuffer; has been designed from the ground up to address the problems
+      &ByteBuf; has been designed from the ground up to address the problems
       of <classname>ByteBuffer</classname> and to meet the daily needs of
       network application developers.  To list a few cool features:
       <itemizedlist>
@@ -82,7 +82,7 @@
     </para>
     <para>
       For more information, please refer to the
-      <link xlink:href="&API;buffer/package-summary.html#package_description"><literal>org.jboss.netty.buffer</literal> package description</link>.
+      <link xlink:href="&API;buffer/package-summary.html#package_description"><literal>io.netty.buffer</literal> package description</link>.
     </para>
     <section>
       <title>Combining and Slicing ChannelBuffers</title>
@@ -96,7 +96,7 @@
         byte buffer. 
       </para>
       <para>
-        Netty supports a zero-copy approach where by a &ChannelBuffer; "points" to the required
+        Netty supports a zero-copy approach where by a &ByteBuf; "points" to the required
         buffers hence eliminating the need to perform a copy.
       </para>
       <mediaobject>
@@ -104,7 +104,7 @@
         <imagedata fileref="images/combine-slice-buffer.png" format="PNG" scale="50" scalefit="1" align="center" />
         </imageobject>
         <textobject>
-          <phrase>Combining and Slicing ChannelBuffers</phrase>
+          <phrase>Combining and Slicing ByteBufs</phrase>
         </textobject>
       </mediaobject>
     </section>    
@@ -156,13 +156,13 @@
         <listitem>
           <para>
             NIO-based TCP/IP transport
-            (See <literal>org.jboss.netty.channel.socket.nio</literal>),
+            (See <literal>io.netty.channel.socket.nio</literal>),
           </para>
         </listitem>
         <listitem>
           <para>
             OIO-based TCP/IP transport
-            (See <literal>org.jboss.netty.channel.socket.oio</literal>),
+            (See <literal>io.netty.channel.socket.oio</literal>),
           </para>
         </listitem>
         <listitem>
@@ -170,12 +170,12 @@
         </listitem>
         <listitem>
           <para>
-            Local transport (See <literal>org.jboss.netty.channel.local</literal>).
+            Local transport (See <literal>io.netty.channel.local</literal>).
           </para>
         </listitem>
       </itemizedlist>
       Switching from one transport to another usually takes just a couple
-      lines of changes such as choosing a different &ChannelFactory;
+      lines of changes such as choosing a different &NioEventLoopGroup;
       implementation.
     </para>
     <para>
@@ -199,39 +199,36 @@
       existing code when you try to add custom event types
     </para>
     <para>
-      A &ChannelEvent; is handled by a list of &ChannelHandler;s in a
+      An IO operation is handled by a list of &ChannelHandler;s in a
       &ChannelPipeline;. The pipeline implements an advanced form of the
       <link xlink:href="http://java.sun.com/blueprints/corej2eepatterns/Patterns/InterceptingFilter.html">Intercepting Filter</link>
       pattern to give a user full control over how an event is handled and how
       the handlers in the pipeline interact with each other.  For example,
       you can define what to do when data is read from a socket:
     </para>
-    <programlisting>public class MyReadHandler implements &SimpleChannelHandler; {
-    public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; evt) {
-        Object message = evt.getMessage();
+    <programlisting>public class MyReadHandler implements &ChannelInboundByteHandlerAdapter; {
+    @Override
+    public void messageReceived(&ChannelHandlerContext; ctx, &ByteBuf; in) {
         // Do something with the received message.
         ...
-
-        // And forward the event to the next handler.
-        ctx.sendUpstream(evt);
     }
 }</programlisting>
     <para>
       You can also define what to do when a handler receives a write request:
     </para>
-    <programlisting>public class MyWriteHandler implements &SimpleChannelHandler; {
-    public void writeRequested(&ChannelHandlerContext; ctx, &MessageEvent; evt) {
-        Object message = evt.getMessage();
+    <programlisting>public class MyWriteHandler implements &ChannelOutboundMessageHandlerAdapter;&lt;Message;&gt; {
+    @Override
+    public void flush(&ChannelHandlerContext; ctx, Message msg) {
         // Do something with the message to be written.
         ...
 
-        // And forward the event to the next handler.
-        ctx.sendDownstream(evt);
+        // And forward the event to the next handler if needed
+        ctx.flush(); 
     }
 }</programlisting>
     <para>
       For more information on the event model, please refer to the
-      API documentation of &ChannelEvent; and &ChannelPipeline;.
+      API documentation of &ChannelPipeline;.
     </para>
   </section>
 

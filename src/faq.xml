@@ -28,30 +28,20 @@
   </para>
 
   <section>
-    <title>When can I write downstream data?</title>
+    <title>When can I write outbound data?</title>
     <para>
       As long as you have the reference to the Channel (or ChannelHandlerContext), you can call Channel.write() 
-      (or Channels.write()) from anywhere, any thread.
-    </para>
-    <para>
-      writeRequested() is called when you trigger the writeRequested event by calling Channel.write() or 
-      calling ChannelHandlerContext.sendDownstream(MessageEvent).
+      (or ChannelHandlerContext.write()) from anywhere, any thread.
     </para>
     <para>
        See <link xlink:href="http://stackoverflow.com/questions/3222134/how-does-downstream-events-work-in-jbosss-netty">
        discussion</link>.
     </para>
   </section>
-  
   <section>
-    <title>How do I incorporate my blocking application code with the non-blocking NioServerSocketChannelFactory?</title>
+    <title>How do I incorporate my blocking application code with the non-blocking &NioEventLoopGroup;?</title>
     <para>
-      &NioServerSocketChannelFactory; uses boss threads and worker threads.
-    </para>
-    <para>
-      Boss threads are responsible for accepting incoming connections while worker threads are reponsible for 
-      performing non-blocking read and write for associated channels.  The default number of worker threads in the 
-      pool is 2 * the number of available processors.
+      &NioEventLoopGroup; contains n Threads that handle the IO of all the registered &Channel;s.
     </para>
     <para>
       If your applicaiton's handler blocks such as (reading from a database) or is CPU intensive, the worker thread 
@@ -59,87 +49,52 @@
     </para>
     <para>
       We recommend that you implement your blocking application code in another thread pool.  You can do this by adding
-      OrderedMemoryAwareThreadPoolExecutor to the the channel pipeline before your handler or implement your own.
+      your handler with an extra &EventExecutor; to the &ChannelPipeline;.
     </para>
     <programlisting>public static void main(String[] args) throws Exception {
-        OrderedMemoryAwareThreadPoolExecutor eventExecutor =
-            new OrderedMemoryAwareThreadPoolExecutor(
-                    5, 1000000, 10000000, 100,
-                    TimeUnit.MILLISECONDS);
-                    
-        ServerBootstrap bootstrap = new ServerBootstrap(
-                new NioServerSocketChannelFactory(
-                        Executors.newCachedThreadPool(),
-                        Executors.newCachedThreadPool()));
- 
-        sb.setPipelineFactory(new MyPipelineFactory(eventExecutor));
+        final EventExecutor executor = new DefaultEventExecutor(8);
+
+        ServerBootstrap bootstrap = new ServerBootstrap();
+        bootstrap.group(new NioEventLoopGroup(), new NioEventLoopGroup());
+        bootstrap.childHandler(new ChannelInitializer&lt;Channel&gt;() {
+            @Override
+            public void initChannel(Channel channel) {
+                ChannelPipeline pipeline = channel.pipeline();
+                pipeline.addLast("decoder", new HttpRequestDecoder());
+                pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
+                pipeline.addLast("encoder", new HttpResponseEncoder());
+                pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+                
+                // MyHandler contains code that blocks so add it with the
+                // EventExecutor to the pipeline.
+                pipeline.addLast(executor, "handler", new MyHandler());        
+            }
+        });
+        ...
+
         sb.bind(socketAddress);
         
         // Other code
 
-        return;               
     }
     
-    public class MyPipelineFactory implements ChannelPipelineFactory {
-    @Override
-    public ChannelPipeline getPipeline() throws Exception {
-        // Create a default pipeline implementation.
-        ChannelPipeline pipeline = pipeline();
-
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
-        pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-        
-        // Insert OrderedMemoryAwareThreadPoolExecutor before your blocking handler
-        pipeline.addLast("pipelineExecutor", new ExecutionHandler(_pipelineExecutor));
-        
-        // MyHandler contains code that blocks
-        pipeline.addLast("handler", new MyHandler());
-        
-        return pipeline;
-    }
     
     public class MyHandler extends SimpleChannelUpstreamHandler {
         // Your blocking application code
-}</programlisting>
-  </section>
-  
+}</programlisting> 
+  </section> 
   <section>
     <title>Do I need to synchronize my handler code given that events can happen at the same time?</title>
     <para>
-      Your &ChannelUpstreamHandler; will be invoked sequentially by the same thread (i.e. an I/O thread) and 
-      therefore a handler does not need to worry about being invoked with a new upstream event before the 
-      previous upstream event is finished.
-    </para>
-    <para>
-      However, downstream events can be fired by more than one thread simultaneously. If your &ChannelDownstreamHandler;  
-      accesses a shared resource or stores stateful information, you might need proper synchronization.
-    </para>
-    <para>
-       See <link xlink:href="http://stackoverflow.com/questions/8655674/is-netty-receive-events-concurrency-how-about-downstream-and-upsream-events">
-       discussion</link>.
+      To make it short, NO! Netty will take care to make sure all your ChannelHandlers will be executed 
+      by only one Thread at the same time.
     </para>
   </section>
   
   <section>
     <title>How do I pass data between handlers in the same Channel?</title>
     <para>
-      Use ChannelLocal.
-    </para>
-    <programlisting>
-    // Declare
-    public static final ChannelLocal&lt;int&gt; data = new ChannelLocal&lt;int&gt;();
-
-    // Set
-    data.set(e.getChannel(), 1);
-
-    // Get
-    int a = data.get(e.getChannel());
-</programlisting>
-    <para>
-       See <link xlink:href="http://stackoverflow.com/questions/8449663/usage-of-nettys-channellocal">
-       discussion</link>.
+      Use Channel.attr(..).set(...) to store the reference. Please refer to the apidocs for more informations. 
     </para>
   </section>
 </preface>

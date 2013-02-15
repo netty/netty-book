@@ -37,7 +37,7 @@
     <title>Before Getting Started</title>
     <para>
       The minimum requirements to run the examples which are introduced in
-      this chapter are only two; the latest version of Netty and JDK 1.5 or
+      this chapter are only two; the latest version of Netty and JDK 1.6 or
       above.  The latest version of Netty is available in
       <link xlink:href="&Downloads;">the project download page</link>.  To download
       the right version of JDK, please refer to your preferred JDK vendor's web
@@ -68,44 +68,44 @@
     </para>
     <programlisting>package org.jboss.netty.example.discard;
 
-public class DiscardServerHandler extends &SimpleChannelHandler; {<co xml:id="example.discard.co1"/>
+public class DiscardServerHandler extends &ChannelInboundByteHandlerAdapter; {<co xml:id="example.discard.co1"/>
 
     @Override
-    public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {<co xml:id="example.discard.co2"/>
+    public void inboundBufferUpdate(&ChannelHandlerContext; ctx, &ByteBuf; in) {<co xml:id="example.discard.co2"/>
+        in.clear();
     }
 
     @Override
-    public void exceptionCaught(&ChannelHandlerContext; ctx, &ExceptionEvent; e) {<co xml:id="example.discard.co3"/>
-        e.getCause().printStackTrace();
-        
-        &Channel; ch = e.getChannel();
-        ch.close();
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {<co xml:id="example.discard.co3"/>
+        cause.printStackTrace();
+
+        ctx.close();
     }
 }</programlisting>
     <calloutlist>
       <callout arearefs="example.discard.co1">
         <para>
           <classname>DiscardServerHandler</classname> extends
-          &SimpleChannelHandler;, which is an implementation of
-          &ChannelHandler;.  &SimpleChannelHandler; provides various event
+          &ChannelInboundBYteHandlerAdapter;, which is an implementation of
+          &ChannelInboundByteHandler;.  &ChannelInboundByteHandler; provides various event
           handler methods that you can override.  For now, it is just enough
-          to extend &SimpleChannelHandler; rather than to implement
+          to extend &ChannelInboundByteHandlerAdapter; rather than to implement
           the handler interfaces by yourself.
         </para>
       </callout>
       <callout arearefs="example.discard.co2">
         <para>
-          We override the <methodname>messageReceived</methodname> event
-          handler method here.  This method is called with a &MessageEvent;,
+          We override the <methodname>inboundBuffer</methodname> event
+          handler method here.  This method is called with a &ByteBuf;,
           which contains the received data, whenever new data is received
-          from a client.  In this example, we ignore the received data by doing
-          nothing to implement the DISCARD protocol.
+          from a client.  In this example, we just discard the received data
+          by calling clear() on the &ByteBuf; to implement the DISCARD protocol.
         </para>
       </callout>
       <callout arearefs="example.discard.co3">
         <para>
           <methodname>exceptionCaught</methodname> event handler method is
-          called with an &ExceptionEvent; when an exception was raised by
+          called with a Throwable when an exception was raised by
           Netty due to I/O error or by a handler implementation due to the
           exception thrown while processing events.  In most cases, the
           caught exception should be logged and its associated channel
@@ -129,42 +129,30 @@ import java.util.concurrent.Executors;
 public class DiscardServer {
 
     public static void main(String[] args) throws Exception {
-        &ChannelFactory; factory =
-            new &NioServerSocketChannelFactory;<co xml:id="example.discard2.co1" />(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+        &ServerBootstrap; bootstrap =
+            new &ServerBootstreap;<co xml:id="example.discard2.co1" />();
+        try {
+            bootstrap.group(new &NioEventLoopGroup;(), new &NioEventLoopGroup;<co xml:id="example.discard2.co2" />();
+                      .channel(&NioServerSocketChannel.class;<co xml:id="example.discard2.co3" />)
+                      .childHandler(new &ChannelInitializer;&lt;SocketChannel&gt;() {<co xml:id="example.discard2.co4" />
+                         @Override
+                         public void initChannel(SocketChannel channel) throws Exception {
+                             channel.pipeline().addLast(new DiscardServerHandler());
+                         }
+                      })
+                      .setChildOption(&ChildOption;.TCP_NO_DELAY, true)<co xml:id="example.discard2.co5" />
+                      .setChildOption(&ChildOption;.KEEP_ALIVE, true)
 
-        &ServerBootstrap; bootstrap = new &ServerBootstrap;<co xml:id="example.discard2.co2" />(factory);
+            ChannelFuture future = bootstrap.bind(new InetSocketAddress(8080)).sync();<co xml:id="example.discard2.co6" />
 
-        bootstrap.setPipelineFactory(new &ChannelPipelineFactory;() {<co xml:id="example.discard2.co3" />
-            public &ChannelPipeline; getPipeline() {
-                return &Channels;.pipeline(new DiscardServerHandler());
-            }
-        });
-
-        bootstrap.setOption("child.tcpNoDelay", true);<co xml:id="example.discard2.co4" />
-        bootstrap.setOption("child.keepAlive", true);
-
-        bootstrap.bind(new InetSocketAddress(8080));<co xml:id="example.discard2.co5" />
+            future.channel().closeFuture().sync();
+        } finally {
+            b.shutdown();
+        }
     }
 }</programlisting>
     <calloutlist>
       <callout arearefs="example.discard2.co1">
-        <para>
-          &ChannelFactory; is a factory which creates and manages &Channel;s
-          and its related resources.  It processes all I/O requests and
-          performs I/O to generate &ChannelEvent;s.  Netty provides various
-          &ChannelFactory; implementations.  We are implementing a server-side
-          application in this example, and therefore
-          &NioServerSocketChannelFactory; was used.  Another thing to note is
-          that it does not create I/O threads by itself.  It is supposed to
-          acquire threads from the thread pool you specified in the
-          constructor, and it gives you more control over how threads should
-          be managed in the environment where your application runs, such as
-          an application server with a security manager.
-        </para>
-      </callout>
-      <callout arearefs="example.discard2.co2">
         <para>
           &ServerBootstrap; is a helper class that sets up a server. You can
           set up the server using a &Channel; directly.  However, please note
@@ -172,31 +160,48 @@ public class DiscardServer {
           cases.
         </para>
       </callout>
+      <callout arearefs="example.discard2.co2">
+        <para>
+          &NioEventLoopGroup; processes all I/O requests and
+          performs I/O.  Netty provides various &EventLoopGroup; implementations
+          for different kind of transports.  We are implementing a server-side
+          application in this example, and therefore two 
+          &NioEventLoopGroup; will be used.  The first is used to handle the accept
+          of new connections and the second will serve the IO of them. 
+          The used &EventLoopGroup; implementation is resposible to manage its used
+          threads. How many Threads are used and how they are mapped to the created
+          &Channel;s depends on the implementation and may be even configurable 
+          via the constructor. Please refer to the apidocs.
+        </para>
+      </callout>
       <callout arearefs="example.discard2.co3">
         <para>
-          Here, we configure the &ChannelPipelineFactory;.  Whenever a new
-          connection is accepted by the server, a new &ChannelPipeline; will be
-          created by the specified &ChannelPipelineFactory;.  The new pipeline
-          contains the <classname>DiscardServerHandler</classname>.  As the
+          Here, we specify to use the &NioServerSocketChannel.class; which will be used
+          to instance a new &ServerChannel; that will accept new connections.
+        </para>
+      </callout>
+      <callout arearefs="example.discard2.co4">
+        <para>
+          Here, we configure the &ChannelInitializer;.  Whenever a new
+          connection is accepted by the server, it will be called. Most of the times
+          you want to add &ChannelHandler;s to the pipeline of the accepted connection.
+          In this example we add the <classname>DiscardServerHandler</classname>.  As the
           application gets complicated, it is likely that you will add more
           handlers to the pipeline and extract this anonymous class into a top
           level class eventually.
         </para>
       </callout>
-      <callout arearefs="example.discard2.co4">
+      <callout arearefs="example.discard2.co5">
         <para>
           You can also set the parameters which are specific to the &Channel;
           implementation.  We are writing a TCP/IP server, so we are allowed
           to set the socket options such as <literal>tcpNoDelay</literal> and
-          <literal>keepAlive</literal>.  Please note that the
-          <literal>"child."</literal> prefix was added to all options.  It
-          means the options will be applied to the accepted &Channel;s instead
-          of the options of the &ServerSocketChannel;.  You could do the
-          following to set the options of the &ServerSocketChannel;:
-          <programlisting>bootstrap.setOption("reuseAddress", true);</programlisting>
+          <literal>keepAlive</literal>.  Please refer to the apidocs of 
+          &ChannelOption; and the specific &ChannelConfig; implementations to
+          get an overview about the supported &ChannelOption;s.
         </para>
       </callout>
-      <callout arearefs="example.discard2.co5">
+      <callout arearefs="example.discard2.co6">
         <para>
           We are ready to go now.  What's left is to bind to the port and to
           start the server.  Here, we bind to the port <literal>8080</literal>
@@ -226,39 +231,20 @@ public class DiscardServer {
       what it has received.
     </para>
     <para>
-      We already know that &MessageEvent; is generated whenever data is
-      received and the <methodname>messageReceived</methodname> handler method
+      We already know that &ByteBuf; is filled whenever data is
+      received and the <methodname>inboundBufferUpdated</methodname> handler method
       will be invoked.  Let us put some code into the
-      <methodname>messageReceived</methodname> method of the
+      <methodname>inboundBufferUpdated</methodname> method of the
       <classname>DiscardServerHandler</classname>: 
     </para>
     <programlisting>@Override
-public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
-    &ChannelBuffer;<co xml:id="example.discard3.co1"/> buf = (ChannelBuffer) e.getMessage();
-    while(buf.readable()) {
+public void inboundBufferUpdated(&ChannelHandlerContext; ctx, &ByteBuf; in) {
+    while(in.readable()) {
         System.out.println((char) buf.readByte());
         System.out.flush();
     }
+    in.clear();
 }</programlisting>
-    <calloutlist>
-      <callout arearefs="example.discard3.co1">
-        <para>
-          It is safe to assume the message type in socket transports is always
-          &ChannelBuffer;.  &ChannelBuffer; is a fundamental data structure
-          which stores a sequence of bytes in Netty.  It's similar to NIO
-          <classname>ByteBuffer</classname>, but it is easier to use and more
-          flexible.  For example, Netty allows you to create a composite
-          &ChannelBuffer; which combines multiple &ChannelBuffer;s reducing
-          the number of unnecessary memory copy.
-        </para>
-        <para>
-          Although it resembles to NIO <classname>ByteBuffer</classname> a lot,
-          it is highly recommended to refer to the API reference.  Learning how
-          to use &ChannelBuffer; correctly is a critical step in using Netty
-          without difficulty.  
-        </para>
-      </callout>
-    </calloutlist>
     <para>
       If you run the <command>telnet</command> command again, you will see the
       server prints what has received.
@@ -282,21 +268,24 @@ public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
       The only difference from the discard server we have implemented in the
       previous sections is that it sends the received data back instead of
       printing the received data out to the console.  Therefore, it is enough
-      again to modify the <methodname>messageReceived</methodname> method:
+      again to modify the <methodname>inboundBufferUpdated</methodname> method:
     </para>
     <programlisting>@Override
-public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
-    &Channel;<co xml:id="example.echo.co1"/> ch = e.getChannel();
-    ch.write(e.getMessage());
+public void inboundBufferUpdated(&ChannelHandlerContext; ctx, &ByteBuf; in) {
+    &ByteBuf;<co xml:id="example.echo.co1"/>  out = ctx.nextOutboundByteBuffer();
+    out.writeBytes(in);
+    ctx.flush();
 }</programlisting>
     <calloutlist>
       <callout arearefs="example.echo.co1">
         <para>
-          A &ChannelEvent; object has a reference to its associated &Channel;.
-          Here, the returned &Channel; represents the connection which received
-          the &MessageEvent;.  We can get the &Channel; and call the
-          <methodname>write</methodname> method to write something back to
-          the remote peer. 
+          A &ChannelHandlerContext; object has a reference to the next outbound &ByteBuf;
+          in the &ChannelPipeline; We can get the &ByteBuf; and call the
+          <methodname>writeBytes</methodname> method with the inbound &ByteBuf; as 
+          parameter. This will transfer the content of the inbound &ByteBuf; to the
+          outbound &ByteBuf;. All we need to do now is call the <methodname>flush</methodname>
+          method on the &ChannelHandlerContext; to notify that there is some data to
+          flush out (send) to the remote peer.
         </para>
       </callout>
     </calloutlist>
@@ -306,7 +295,7 @@ public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
     </para>
     <para>
       The full source code of the echo server is located in the
-      <literal>org.jboss.netty.example.echo</literal> package of the
+      <literal>io.netty.example.echo</literal> package of the
       distribution.
     </para>
   </section>
@@ -325,41 +314,40 @@ public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
     <para>
       Because we are going to ignore any received data but to send a message
       as soon as a connection is established, we cannot use the
-      <methodname>messageReceived</methodname> method this time.  Instead,
-      we should override the <methodname>channelConnected</methodname> method.
+      <methodname>inboundBufferUpdated</methodname> method this time.  Instead,
+      we should override the <methodname>channelActive</methodname> method.
       The following is the implementation:
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
 
-public class TimeServerHandler extends &SimpleChannelHandler; {
+public class TimeServerHandler extends &ChannelStateAdapter; {
 
     @Override
-    public void channelConnected(&ChannelHandlerContext; ctx, &ChannelStateEvent; e) {<co xml:id="example.time.co1"/>
-        &Channel; ch = e.getChannel();
-        
-        &ChannelBuffer; time = &ChannelBuffers;.buffer(4);<co xml:id="example.time.co2"/>
+    public void channelActive(&ChannelHandlerContext; ctx) {<co xml:id="example.time.co1"/>
+
+        &ByteBuf; time = ctx.alloc().buffer(4);<co xml:id="example.time.co2"/>
         time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
         
-        &ChannelFuture; f = ch.write(time);<co xml:id="example.time.co3"/>
+        &ChannelFuture; f = ctx.write(time);<co xml:id="example.time.co3"/>
         
         f.addListener(new &ChannelFutureListener;() {<co xml:id="example.time.co4"/>
             public void operationComplete(&ChannelFuture; future) {
-                &Channel; ch = future.getChannel();
+                &Channel; ch = future.channel();
                 ch.close();
             }
         });
     }
 
     @Override
-    public void exceptionCaught(&ChannelHandlerContext; ctx, &ExceptionEvent; e) {
-        e.getCause().printStackTrace();
-        e.getChannel().close();
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }</programlisting>
     <calloutlist>
       <callout arearefs="example.time.co1">
         <para>
-          As explained, <methodname>channelConnected</methodname> method will
+          As explained, <methodname>channelActive</methodname> method will
           be invoked when a connection is established.  Let us write the 32-bit
           integer that represents the current time in seconds here.
         </para>
@@ -368,20 +356,10 @@ public class TimeServerHandler extends &SimpleChannelHandler; {
         <para>
           To send a new message, we need to allocate a new buffer which will
           contain the message.  We are going to write a 32-bit integer, and
-          therefore we need a &ChannelBuffer; whose capacity is
-          <literal>4</literal> bytes.  The &ChannelBuffers; helper class is
-          used to allocate a new buffer.  Besides the
-          <methodname>buffer</methodname> method, &ChannelBuffers; provides a
-          lot of useful methods related to the &ChannelBuffer;.  For more
+          therefore we need a &ByteBuf; whose capacity is
+          <literal>4</literal> bytes.  The &ByteBufAllocater; is
+          used to allocate a new buffer. For more
           information, please refer to the API reference.
-        </para>
-        <para>
-          On the other hand, it is a good idea to use static imports for
-          &ChannelBuffers;:
-          <programlisting>import static org.jboss.netty.buffer.&ChannelBuffers;.*;
-...
-&ChannelBuffer;  dynamicBuf = dynamicBuffer(256);
-&ChannelBuffer; ordinaryBuf = buffer(1024);</programlisting>
         </para>
       </callout>
       <callout arearefs="example.time.co3">
@@ -391,10 +369,10 @@ public class TimeServerHandler extends &SimpleChannelHandler; {
         <para>
           But wait, where's the <methodname>flip</methodname>?  Didn't we used
           to call <methodname>ByteBuffer.flip()</methodname> before sending a
-          message in NIO?  &ChannelBuffer; does not have such a method because
+          message in NIO?  &ByteBuf; does not have such a method because
           it has two pointers; one for read operations and the other for write
           operations.  The writer index increases when you write something to
-          a &ChannelBuffer; while the reader index does not change.  The reader
+          a &ByteBuf; while the reader index does not change.  The reader
           index and the writer index represents where the message starts and
           ends respectively.
         </para>
@@ -416,9 +394,9 @@ public class TimeServerHandler extends &SimpleChannelHandler; {
           are asynchronous in Netty.  For example, the following code might
           close the connection even before a message is sent:
         </para>
-        <programlisting>&Channel; ch = ...;
-ch.write(message);
-ch.close();</programlisting>
+        <programlisting>&ChannelHandlerContext; ctx = ...;
+ctx.write(message);
+ctx.close();</programlisting>
         <para>
           Therefore, you need to call the <methodname>close</methodname>
           method after the &ChannelFuture;, which was returned by the
@@ -459,10 +437,10 @@ ch.close();</programlisting>
     </para>
     <para>
       The biggest and only difference between a server and a client in Netty
-      is that different &Bootstrap; and &ChannelFactory; are required.  Please
+      is that different &Bootstrap; aisrequired.  Please
       take a look at the following code:
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -473,44 +451,31 @@ public class TimeClient {
         String host = args[0];
         int port = Integer.parseInt(args[1]);
 
-        &ChannelFactory; factory =
-            new &NioClientSocketChannelFactory;<co xml:id="example.time2.co1"/>(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
-
-        &ClientBootstrap; bootstrap = new &ClientBootstrap;<co xml:id="example.time2.co2"/>(factory);
-
-        bootstrap.setPipelineFactory(new &ChannelPipelineFactory;() {
-            public &ChannelPipeline; getPipeline() {
-                return &Channels;.pipeline(new TimeClientHandler());
+        &Bootstrap; bootstrap = new &Bootstrap;<co xml:id="example.time2.co1"/>();
+        bootstrap.group(new &NioEventLoopGroup;<co xml:id="example.time2.co2"/>();
+        bootstrap.setHandler(new &ChannelInitializer;&lt;Channel&gt;() {
+            public void initChannel(Channel channel) {
+                channel.pipeline().addLast(new TimeClientHandler());
             }
         });
         
-        bootstrap.setOption("tcpNoDelay"<co xml:id="example.time2.co3"/>, true);
-        bootstrap.setOption("keepAlive", true);
-
-        bootstrap.connect<co xml:id="example.time2.co4"/>(new InetSocketAddress(host, port));
+        bootstrap.setChildOption(&ChildOption;.TCP_NO_DELAY, true);
+        bootstrap.setChildOption(&ChildOption.;KEEP_ALIVE, true);
+        bootstrap.connect<co xml:id="example.time2.co3"/>(new InetSocketAddress(host, port));
     }
 }</programlisting>
     <calloutlist>
       <callout arearefs="example.time2.co1">
         <para>
-          &NioClientSocketChannelFactory;, instead of &NioServerSocketChannelFactory;
-           was used to create a client-side &Channel;. 
+          &Bootstrap; is a client-side counterpart of &ServerBootstrap;.
         </para>
       </callout>
       <callout arearefs="example.time2.co2">
         <para>
-          &ClientBootstrap; is a client-side counterpart of &ServerBootstrap;.
+          Only one &NioEventLoopGroup; used.
         </para>
       </callout>
       <callout arearefs="example.time2.co3">
-        <para>
-          Please note that there's no <literal>"child."</literal> prefix.
-          A client-side &SocketChannel; does not have a parent.
-        </para>
-      </callout>
-      <callout arearefs="example.time2.co4">
         <para>
           We should call the <methodname>connect</methodname> method instead of
           the <methodname>bind</methodname> method.  
@@ -523,24 +488,23 @@ public class TimeClient {
       32-bit integer from the server, translate it into a human readable format,
       print the translated time, and close the connection:
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
 
 import java.util.Date;
 
-public class TimeClientHandler extends &SimpleChannelHandler; {
+public class TimeClientHandler extends &ChannelInboundBufferAdapter; {
 
     @Override
-    public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
-        &ChannelBuffer; buf = (&ChannelBuffer;) e.getMessage();
-        long currentTimeMillis = buf.readInt() * 1000L;
+    public void inboundBufferUpdated(&ChannelHandlerContext; ctx, &ByteBuf; in) {
+        long currentTimeMillis = in.readInt() * 1000L;
         System.out.println(new Date(currentTimeMillis));
-        e.getChannel().close();
+        ctx.close();
     }
 
     @Override
-    public void exceptionCaught(&ChannelHandlerContext; ctx, &ExceptionEvent; e) {
-        e.getCause().printStackTrace();
-        e.getChannel().close();
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }</programlisting>
     <para>
@@ -608,22 +572,15 @@ public class TimeClientHandler extends &SimpleChannelHandler; {
         following is the modified <classname>TimeClientHandler</classname>
         implementation that fixes the problem:
       </para>
-      <programlisting>package org.jboss.netty.example.time;
-
-import static org.jboss.netty.buffer.&ChannelBuffers;.*;
+      <programlisting>package io.netty.example.time;
 
 import java.util.Date;
 
-public class TimeClientHandler extends &SimpleChannelHandler; {
-
-    private final &ChannelBuffer; buf = dynamicBuffer();<co xml:id="example.time3.co1"/>
+public class TimeClientHandler extends &ChannelInboundByteHandlerAdapter; {
 
     @Override
-    public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
-        &ChannelBuffer; m = (&ChannelBuffer;) e.getMessage();
-        buf.writeBytes(m);<co xml:id="example.time3.co2"/>
-        
-        if (buf.readableBytes() &gt;= 4) {<co xml:id="example.time3.co3"/>
+    public void inboundBufferUpdated(&ChannelHandlerContext; ctx, &ByteBuf; in) {        
+        if (in.readableBytes() &gt;= 4) {<co xml:id="example.time3.co1"/>
             long currentTimeMillis = buf.readInt() * 1000L;
             System.out.println(new Date(currentTimeMillis));
             e.getChannel().close();
@@ -631,32 +588,19 @@ public class TimeClientHandler extends &SimpleChannelHandler; {
     }
 
     @Override
-    public void exceptionCaught(&ChannelHandlerContext; ctx, &ExceptionEvent; e) {
-        e.getCause().printStackTrace();
-        e.getChannel().close();
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }</programlisting>
       <calloutlist>
         <callout arearefs="example.time3.co1">
           <para>
-            A <firstterm>dynamic buffer</firstterm> is a &ChannelBuffer; which
-            increases its capacity on demand.  It's very useful when you don't
-            know the length of the message.
-          </para>
-        </callout>
-        <callout arearefs="example.time3.co2">
-          <para>
-            First, all received data should be cumulated into
-            <varname>buf</varname>.
-          </para>
-        </callout>
-        <callout arearefs="example.time3.co3">
-          <para>
-            And then, the handler must check if <varname>buf</varname> has enough
+            The handler checks if <varname>in</varname> has enough
             data, 4 bytes in this example, and proceed to the actual business
             logic.  Otherwise, Netty will call the
-            <methodname>messageReceived</methodname> method again when more
-            data arrives, and eventually all 4 bytes will be cumulated.
+            <methodname>inboundBufferUpdated</methodname> method again when more
+            data arrives.
           </para>
         </callout>
       </calloutlist>
@@ -696,13 +640,13 @@ public class TimeClientHandler extends &SimpleChannelHandler; {
         Fortunately, Netty provides an extensible class which helps you write
         the first one out of the box:
       </para>
-      <programlisting>package org.jboss.netty.example.time;
+      <programlisting>package io.netty.example.time;
 
-public class TimeDecoder extends &FrameDecoder;<co xml:id="example.time4.co1"/> {
+public class TimeDecoder extends &ByteToMessageDecoder;<co xml:id="example.time4.co1"/> {
 
     @Override
     protected Object decode(
-            &ChannelHandlerContext; ctx, &Channel; channel, &ChannelBuffer; buffer)<co xml:id="example.time4.co2"/> {
+            &ChannelHandlerContext; ctx, &ByteBuf; in)<co xml:id="example.time4.co2"/> {
             
         if (buffer.readableBytes() &lt; 4) {
             return null; <co xml:id="example.time4.co3"/>
@@ -714,21 +658,20 @@ public class TimeDecoder extends &FrameDecoder;<co xml:id="example.time4.co1"/> 
       <calloutlist>
         <callout arearefs="example.time4.co1">
           <para>
-            &FrameDecoder; is an implementation of &ChannelHandler; which
+            &ByteToMessageDecoder; is an implementation of &ChannelHandler; which
             makes it easy to which deals with the fragmentation issue.
           </para>
         </callout>
         <callout arearefs="example.time4.co2">
           <para>
             &FrameDecoder; calls <methodname>decode</methodname> method with
-            an internally maintained cumulative buffer whenever new data is
-            received.
+            the inbound buffer whenever new data is received.
           </para>
         </callout>
         <callout arearefs="example.time4.co3">
           <para>
             If <literal>null</literal> is returned, it means there's not 
-            enough data yet.  &FrameDecoder; will call again when there is a
+            enough data yet.  &ByteToMessageDecoder; will call again when there is a
             sufficient amount of data.
           </para>
         </callout>
@@ -736,41 +679,71 @@ public class TimeDecoder extends &FrameDecoder;<co xml:id="example.time4.co1"/> 
           <para>
             If non-<literal>null</literal> is returned, it means the
             <methodname>decode</methodname> method has decoded a message
-            successfully.  &FrameDecoder; will discard the read part of its
+            successfully.  &ByteToMessageDecoder; will discard the read part of its
             internal cumulative buffer.  Please remember that you don't need
-            to decode multiple messages.  &FrameDecoder; will keep calling
+            to decode multiple messages.  &ByteToMessageDecoder; will keep calling
             the <methodname>decoder</methodname> method until it returns
             <literal>null</literal>.
           </para>
         </callout>
       </calloutlist>
       <para>
+        Now our TimeClientHandler will always receive &ByteBuf;s which are exact 4 bytes in size
+        and so contain the full data. Because of this we need to change the TimeClientHandler to
+        extend &ChannelInboundMessageHandlerAdapter;:
+      </para>
+      <programlisting>package io.netty.example.time;
+
+import java.util.Date;
+
+public class TimeClientHandler extends &ChannelInboundMessageHandlerAdapter;&lt;ByteBuf&gt; {
+
+    @Override
+    public void messageReceived(&ChannelHandlerContext; ctx, &ByteBuf; msg)<co xml:id="example.time5.co1"/> {  
+            long currentTimeMillis = buf.readInt() * 1000L; 
+            System.out.println(new Date(currentTimeMillis));
+            ctx.close();     
+    }
+
+    @Override
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
+    }
+}</programlisting>
+    <calloutlist>
+        <callout arearefs="example.time5.co1">
+          <para>
+            <methodname>messageReceived</methodname> will be called with a new &ByteBuf; msg
+            for every received full data now.
+          </para>
+        </callout>
+      </calloutlist>
+      <para>
         Now that we have another handler to insert into the &ChannelPipeline;,
-        we should modify the &ChannelPipelineFactory; implementation in the
+        we should modify the &ChannelInitializer; implementation in the
         <classname>TimeClient</classname>:
       </para>
-      <programlisting>        bootstrap.setPipelineFactory(new &ChannelPipelineFactory;() {
-            public &ChannelPipeline; getPipeline() {
-                return &Channels;.pipeline(
-                        new TimeDecoder(),
-                        new TimeClientHandler());
+      <programlisting>        bootstrap.setHandler(new &ChannelInitializer;&lt;Channel&gt;() {
+            public void initChannel(Channel channel) {
+                channel.pipeline().addLast(new TimeDecoder(), new TimeClientHandler());
             }
         });</programlisting>
+
       <para>
         If you are an adventurous person, you might want to try the
         &ReplayingDecoder; which simplifies the decoder even more.  You will
         need to consult the API reference for more information though.
       </para>
-      <programlisting>package org.jboss.netty.example.time;
+      <programlisting>package io.netty.example.time;
 
-public class TimeDecoder extends &ReplayingDecoder;&lt;&VoidEnum;&gt; {
+public class TimeDecoder extends &ReplayingDecoder;&lt;Void&gt; {
 
     @Override
     protected Object decode(
-            &ChannelHandlerContext; ctx, &Channel; channel,
-            &ChannelBuffer; buffer, &VoidEnum; state) {
+            &ChannelHandlerContext; ctx, &ByteBuf; in) {
             
-        return buffer.readBytes(4);
+        return in.readBytes(4);
     }
 }</programlisting>
       <para>
@@ -781,13 +754,13 @@ public class TimeDecoder extends &ReplayingDecoder;&lt;&VoidEnum;&gt; {
         <itemizedlist>
           <listitem>
             <para>
-              <literal>org.jboss.netty.example.factorial</literal> for
+              <literal>io.netty.example.factorial</literal> for
               a binary protocol, and
             </para>
           </listitem>
           <listitem>
             <para>
-              <literal>org.jboss.netty.example.telnet</literal> for
+              <literal>io.netty.example.telnet</literal> for
               a text line-based protocol.
             </para>
           </listitem>
@@ -798,28 +771,28 @@ public class TimeDecoder extends &ReplayingDecoder;&lt;&VoidEnum;&gt; {
   
   <section xml:id="start.pojo">
     <title>
-      Speaking in POJO instead of ChannelBuffer
+      Speaking in POJO instead of ByteBuf
     </title>
     <para>
-      All the examples we have reviewed so far used a &ChannelBuffer; as a
+      All the examples we have reviewed so far used a &ByteBuf; as a
       primary data structure of a protocol message.  In this section, we will
       improve the TIME protocol client and server example to use a 
       <link xlink:href="http://en.wikipedia.org/wiki/POJO">POJO</link> instead of a
-      &ChannelBuffer;.
+      &ByteBuf;.
     </para>
     <para>
-      The advantage of using a POJO in your &ChannelHandler; is obvious;
+      The advantage of using a POJO in your &ByteBuf; is obvious;
       your handler becomes more maintainable and reusable by separating the
-      code which extracts information from &ChannelBuffer; out from the
+      code which extracts information from &ByteBuf; out from the
       handler.  In the TIME client and server examples, we read only one
-      32-bit integer and it is not a major issue to use &ChannelBuffer; directly.
+      32-bit integer and it is not a major issue to use &ByteBuf; directly.
       However, you will find it is necessary to make the separation as you
       implement a real world protocol.
     </para>
     <para>
       First, let us define a new type called <classname>UnixTime</classname>.
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
 
 import java.util.Date;
 
@@ -841,37 +814,46 @@ public class UnixTime {
 }</programlisting>
     <para>
       We can now revise the <classname>TimeDecoder</classname> to return
-      a <classname>UnixTime</classname> instead of a &ChannelBuffer;. 
+      a <classname>UnixTime</classname> instead of a &ByteBuf;. 
     </para>
     <programlisting>@Override
 protected Object decode(
-        &ChannelHandlerContext; ctx, &Channel; channel, &ChannelBuffer; buffer) {
-    if (buffer.readableBytes() &lt; 4) {
+        &ChannelHandlerContext; ctx, &ByteBuf; in) {
+    if (in.readableBytes() &lt; 4) {
         return null;
     }
 
-    return new UnixTime(buffer.readInt());<co xml:id="example.time5.co1"/>
+    return new UnixTime(int.readInt());<co xml:id="example.time6.co1"/>
 }</programlisting>
     <calloutlist>
-      <callout arearefs="example.time5.co1">
+      <callout arearefs="example.time6.co1">
         <para>
-          &FrameDecoder; and &ReplayingDecoder; allow you to return an object
+          &ByteToMessageDecoder; and &ReplayingDecoder; allow you to return an object
           of any type.  If they were restricted to return only a
-          &ChannelBuffer;, we would have to insert another &ChannelHandler;
-          which transforms a &ChannelBuffer; into a
+          &ByteBuf;, we would have to insert another &ChannelHandler;
+          which transforms a &ByteBuf; into a
           <classname>UnixTime</classname>.
         </para>
       </callout>
     </calloutlist>
     <para>
       With the updated decoder, the <classname>TimeClientHandler</classname>
-      does not use &ChannelBuffer; anymore:
+      does not use &ByteBuf; anymore so we need to change it to receive UnixTime
+      messages name.
     </para>
-    <programlisting>@Override
-public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
-    UnixTime m = (UnixTime) e.getMessage();
-    System.out.println(m);
-    e.getChannel().close();
+    <programlisting>public class TimeClientHandler extends &ChannelInboundMessageHandlerAdapter;&lt;UnixTime&gt; {
+
+    @Override
+    public void messageReceived(&ChannelHandlerContext; ctx, Unixtime m) {
+        System.out.println(m);
+        ctx.close();
+    }
+
+    @Override
+    public void exceptionCaught(&ChannelHandlerContext; ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
+    }
 }</programlisting>
     <para>
       Much simpler and elegant, right?  The same technique can be applied on
@@ -879,68 +861,37 @@ public void messageReceived(&ChannelHandlerContext; ctx, &MessageEvent; e) {
       <classname>TimeServerHandler</classname> first this time:
     </para>
     <programlisting>@Override
-public void channelConnected(&ChannelHandlerContext; ctx, &ChannelStateEvent; e) {
+public void channelActive(&ChannelHandlerContext; ctx) {
     UnixTime time = new UnixTime(System.currentTimeMillis() / 1000);
-    &ChannelFuture; f = e.getChannel().write(time);
+    &ChannelFuture; f = ctx.write(time);
     f.addListener(&ChannelFutureListener;.CLOSE);
 }</programlisting>
     <para>
       Now, the only missing piece is an encoder, which is an implementation of
       &ChannelHandler; that translates a <classname>UnixTime</classname> back
-      into a &ChannelBuffer;.  It's much simpler than writing a decoder because
-      there's no need to deal with packet fragmentation and assembly when
-      encoding a message.
+      into bytes that can be written to the outbound &ByteBuf;.  It's much simpler 
+      than writing a decoder because there's no need to deal with packet fragmentation
+      and assembly when encoding a message.
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
     
-import static org.jboss.netty.buffer.&ChannelBuffers;.*;
+public class TimeEncoder extends &MessageToByteEncoder;&lt;UnixTime&gt; {
 
-public class TimeEncoder extends &SimpleChannelHandler; {
-
-    public void writeRequested(&ChannelHandlerContext; ctx, &MessageEvent;<co xml:id="example.time6.co1"/> e) {
-        UnixTime time = (UnixTime) e.getMessage();
-        
-        &ChannelBuffer; buf = buffer(4);
-        buf.writeInt(time.getValue());
-        
-        &Channels;.write(ctx, e.getFuture(), buf);<co xml:id="example.time6.co2"/>
+    @Override
+    protected void encode(&ChannelHandlerContext; ctx, UnixTime<co xml:id="example.time7.co1"/> msg, ByteBuf out) {        
+        out.writeInt(m.getValue());<co xml:id="example.time7.co2"/>
     }
 }</programlisting>
     <calloutlist>
-      <callout arearefs="example.time6.co1">
+      <callout arearefs="example.time7.co1">
         <para>
-          An encoder overrides the <methodname>writeRequested</methodname>
-          method to intercept a write request.  Please note that the
-          &MessageEvent; parameter here is the same type which was specified
-          in <methodname>messageReceived</methodname> but they are interpreted
-          differently.  A &ChannelEvent; can be either an
-          <firstterm>upstream</firstterm> or <firstterm>downstream</firstterm>
-          event depending on the direction where the event flows.
-          For instance, a &MessageEvent; can be an upstream event when called
-          for <methodname>messageReceived</methodname> or a downstream event
-          when called for <methodname>writeRequested</methodname>.
-          Please refer to the API reference to learn more about the difference
-          between a upstream event and a downstream event.
+          An encoder overrides the <methodname>encode</methodname>.
         </para>
       </callout>
-      <callout arearefs="example.time6.co2">
+      <callout arearefs="example.time7.co2">
         <para>
-          Once done with transforming a POJO into a &ChannelBuffer;, you should
-          forward the new buffer to the previous &ChannelDownstreamHandler; in
-          the &ChannelPipeline;.  &Channels; provides various helper methods
-          which generates and sends a &ChannelEvent;.  In this example,
-          &Channels;<literal>.write(...)</literal> method creates a new
-          &MessageEvent; and sends it to the previous &ChannelDownstreamHandler;
-          in the &ChannelPipeline;.
-        </para>
-        <para>
-          On the other hand, it is a good idea to use static imports for
-          &Channels;:
-          <programlisting>import static org.jboss.netty.channel.&Channels;.*;
-...
-&ChannelPipeline; pipeline = pipeline();
-write(ctx, e.getFuture(), buf);
-fireChannelDisconnected(ctx);</programlisting>
+          All needs to get done is to encode the message to bytes and write
+          it to the outbound &ByteBuf;, like shown here.
         </para>
       </callout>
     </calloutlist>
@@ -960,7 +911,8 @@ fireChannelDisconnected(ctx);</programlisting>
       that the application doesn't exit but just keep running doing nothing.
       Looking from the full stack trace, you will also find a couple I/O threads
       are running.  To shut down the I/O threads and let the application exit
-      gracefully, you need to release the resources allocated by &ChannelFactory;.
+      gracefully, you need to release the resources allocated by &ServerBootstrap;
+      or &Bootstrap;.
     </para>
     <para>
       The shutdown process of a typical network application is composed of the
@@ -979,7 +931,7 @@ fireChannelDisconnected(ctx);</programlisting>
         </listitem>
         <listitem>
           <para>
-            Release all resources used by &ChannelFactory;.
+            Release all resources used by &ServerBootstrap; or &Bootstrap;.
           </para>
         </listitem>
       </orderedlist>
@@ -988,49 +940,37 @@ fireChannelDisconnected(ctx);</programlisting>
       To apply the three steps above to the <classname>TimeClient</classname>,
       <methodname>TimeClient.main()</methodname> could shut itself down
       gracefully by closing the only one client connection and releasing all
-      resources used by &ChannelFactory;:
+      resources used by &Bootstrap;:
     </para>
-    <programlisting>package org.jboss.netty.example.time;
+    <programlisting>package io.netty.example.time;
 
 public class TimeClient {
     public static void main(String[] args) throws Exception {
         ...
-        &ChannelFactory; factory = ...;
-        &ClientBootstrap; bootstrap = ...;
+        &Bootstrap; bootstrap = ...;
         ...
-        &ChannelFuture; future<co xml:id="example.time7.co1"/> = bootstrap.connect(...);
-        future.awaitUninterruptibly();<co xml:id="example.time7.co2"/>
-        if (!future.isSuccess()) {
-            future.getCause().printStackTrace();<co xml:id="example.time7.co3"/>
-        }
-        future.getChannel().getCloseFuture().awaitUninterruptibly();<co xml:id="example.time7.co4"/>
-        factory.releaseExternalResources();<co xml:id="example.time7.co5"/>
+        &ChannelFuture; future<co xml:id="example.time8.co1"/> = bootstrap.connect(...);
+        future.sync();<co xml:id="example.time8.co2"/>
+        future.getChannel().getCloseFuture().sync();<co xml:id="example.time8.co3"/>
+        bootstap.shutdown();<co xml:id="example.time8.co4"/>
     }
 }</programlisting>
     <calloutlist>
-      <callout arearefs="example.time7.co1">
+      <callout arearefs="example.time8.co1">
         <para>
-          The <methodname>connect</methodname> method of &ClientBootstrap;
+          The <methodname>connect</methodname> method of &Bootstrap;
           returns a &ChannelFuture; which notifies when a connection attempt
           succeeds or fails.  It also has a reference to the &Channel; which
           is associated with the connection attempt.
         </para>
       </callout>
-      <callout arearefs="example.time7.co2">
+      <callout arearefs="example.time8.co2">
         <para>
           Wait for the returned &ChannelFuture; to determine if the connection
-          attempt was successful or not.
+          attempt was successful or not. If failed it will throw a Exception.
         </para>
       </callout>
-      <callout arearefs="example.time7.co3">
-        <para>
-          If failed, we print the cause of the failure to know why it failed.
-          the <methodname>getCause()</methodname> method of &ChannelFuture; will
-          return the cause of the failure if the connection attempt was neither
-          successful nor cancelled.
-        </para>
-      </callout>
-      <callout arearefs="example.time7.co4">
+      <callout arearefs="example.time8.co3">
         <para>
           Now that the connection attempt is over, we need to wait until the
           connection is closed by waiting for the <varname>closeFuture</varname>
@@ -1043,11 +983,11 @@ public class TimeClient {
           when the connection attempt fails.
         </para>
       </callout>
-      <callout arearefs="example.time7.co5">
+      <callout arearefs="example.time8.co4">
         <para>
           All connections have been closed at this point.  The only task left
-          is to release the resources being used by &ChannelFactory;.  It is as
-          simple as calling its <methodname>releaseExternalResources()</methodname>
+          is to release the resources being used by &Bootstrap;.  It is as
+          simple as calling its <methodname>shutdown()</methodname>
           method.  All resources including the NIO <classname>Selector</classname>s
           and thread pools will be shut down and terminated automatically.
         </para>
@@ -1074,11 +1014,11 @@ public class TimeClient {
       the global &ChannelGroup;, <varname>TimeServer.allChannels</varname>:
     </para>
     <programlisting>@Override
-public void channelOpen(&ChannelHandlerContext; ctx, &ChannelStateEvent; e) {
-    TimeServer.allChannels.add(e.getChannel());<co xml:id="example.time8.co1"/>
+public void channelActive(&ChannelHandlerContext; ctx) {
+    TimeServer.allChannels.add(ctx.channel();<co xml:id="example.time9.co1"/>
 }</programlisting>
     <calloutlist>
-      <callout arearefs="example.time8.co1">
+      <callout arearefs="example.time9.co1">
         <para>
           Yes, &ChannelGroup; is thread-safe.
         </para>
@@ -1092,30 +1032,29 @@ public void channelOpen(&ChannelHandlerContext; ctx, &ChannelStateEvent; e) {
 
 public class TimeServer {
 
-    static final &ChannelGroup; allChannels = new &DefaultChannelGroup;("time-server"<co xml:id="example.time9.co1"/>);
+    static final &ChannelGroup; allChannels = new &DefaultChannelGroup;("time-server"<co xml:id="example.time10.co1"/>);
 
     public static void main(String[] args) throws Exception {
         ...
-        &ChannelFactory; factory = ...;
         &ServerBootstrap; bootstrap = ...;
         ...
-        &Channel; channel<co xml:id="example.time9.co2"/> = bootstrap.bind(...);
-        allChannels.add(channel);<co xml:id="example.time9.co3"/>
-        waitForShutdownCommand();<co xml:id="example.time9.co4"/>
-        &ChannelGroupFuture; future = allChannels.close();<co xml:id="example.time9.co5"/>
-        future.awaitUninterruptibly();
-        factory.releaseExternalResources();
+        &Channel; channel<co xml:id="example.time10.co2"/> = bootstrap.bind(...);
+        allChannels.add(channel);<co xml:id="example.time10.co3"/>
+        waitForShutdownCommand();<co xml:id="example.time10.co4"/>
+        &ChannelGroupFuture; future = allChannels.close();<co xml:id="example.time10.co5"/>
+        future.sync();
+        bootstreap.releaseExternalResources();
     }
 }</programlisting>
     <calloutlist>
-      <callout arearefs="example.time9.co1">
+      <callout arearefs="example.time10.co1">
         <para>
           &DefaultChannelGroup; requires the name of the group as a constructor
           parameter.  The group name is solely used to distinguish one group
           from others.
         </para>
       </callout>
-      <callout arearefs="example.time9.co2">
+      <callout arearefs="example.time10.co2">
         <para>
           The <methodname>bind</methodname> method of &ServerBootstrap;
           returns a server side &Channel; which is bound to the specified
@@ -1124,7 +1063,7 @@ public class TimeServer {
           bound local address.
         </para>
       </callout>
-      <callout arearefs="example.time9.co3">
+      <callout arearefs="example.time10.co3">
         <para>
           Any type of &Channel;s can be added to a &ChannelGroup; regardless if
           it is either server side, client-side, or accepted.  Therefore,
@@ -1132,14 +1071,14 @@ public class TimeServer {
           in one shot when the server shuts down.
         </para>
       </callout>
-      <callout arearefs="example.time9.co4">
+      <callout arearefs="example.time10.co4">
         <para>
           <methodname>waitForShutdownCommand()</methodname> is an imaginary
           method that waits for the shutdown signal.  You could wait for a
           message from a privileged client or the JVM shutdown hook.
         </para>
       </callout>
-      <callout arearefs="example.time9.co5">
+      <callout arearefs="example.time10.co5">
         <para>
           You can perform the same operation on all channels in the same 
           &ChannelGroup;.  In this case, we close all channels, which means
@@ -1163,7 +1102,7 @@ public class TimeServer {
     <para>      
       There is more detailed information about Netty in the upcoming chapters. We
       also encourage you to review the Netty examples in the 
-      <link xlink:href="https://github.com/netty/netty/tree/3.2/src/main/java/org/jboss/netty/example">org.jboss.netty.example</link>
+      <link xlink:href="https://github.com/netty/netty/tree/master/example/src/main/java/io/netty/example">io.netty.example</link>
       package.
     </para>
     <para>      

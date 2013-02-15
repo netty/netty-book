@@ -28,40 +28,36 @@
 <!ENTITY Home       "http://netty.io/">
 <!ENTITY Downloads  "&Home;Main/Downloads">
 <!ENTITY Community  "&Home;Main/Get+Involved">
-<!ENTITY DocHome    "http://static.netty.io/3.5/">
-<!ENTITY API        "&DocHome;api/org/jboss/netty/">
-<!ENTITY XRef       "&DocHome;xref/org/jboss/netty/">
+<!ENTITY DocHome    "http://static.netty.io/4.0/">
+<!ENTITY API        "&DocHome;api/io/netty/">
+<!ENTITY XRef       "&DocHome;xref/io/netty/">
 
 <!-- Types in the bootstrap package -->
 
 <!ENTITY Bootstrap                "<link xlink:href='&API;bootstrap/Bootstrap.html'><classname>Bootstrap</classname></link>">
-<!ENTITY ClientBootstrap          "<link xlink:href='&API;bootstrap/ClientBootstrap.html'><classname>ClientBootstrap</classname></link>">
 <!ENTITY ServerBootstrap          "<link xlink:href='&API;bootstrap/ServerBootstrap.html'><classname>ServerBootstrap</classname></link>">
 
 <!-- Types in the buffer package -->
 
-<!ENTITY ChannelBuffer            "<link xlink:href='&API;buffer/ChannelBuffer.html'><interfacename>ChannelBuffer</interfacename></link>">
-<!ENTITY ChannelBuffers           "<link xlink:href='&API;buffer/ChannelBuffers.html'><classname>ChannelBuffers</classname></link>">
+<!ENTITY ByteBuf            	  "<link xlink:href='&API;buffer/ByteBuf.html'><interfacename>ByteBuf</interfacename></link>">
+<!ENTITY ByteBufAllocator      	  "<link xlink:href='&API;buffer/ByteBufAllocator.html'><interfacename>ByteBufAllocator</interfacename></link>">
 
 <!-- Types in the channel package -->
 
-<!ENTITY Channel                  "<link xlink:href='&API;channel/Channel.html'><interfacename>Channel</interfacename></link>">
-<!ENTITY ChannelDownstreamHandler "<link xlink:href='&API;channel/ChannelDownstreamHandler.html'><interfacename>ChannelDownstreamHandler</interfacename></link>">
-<!ENTITY ChannelEvent             "<link xlink:href='&API;channel/ChannelEvent.html'><interfacename>ChannelEvent</interfacename></link>">
-<!ENTITY ChannelFactory           "<link xlink:href='&API;channel/ChannelFactory.html'><interfacename>ChannelFactory</interfacename></link>">
-<!ENTITY ChannelFuture            "<link xlink:href='&API;channel/ChannelFuture.html'><interfacename>ChannelFuture</interfacename></link>">
-<!ENTITY ChannelFutureListener    "<link xlink:href='&API;channel/ChannelFutureListener.html'><interfacename>ChannelFutureListener</interfacename></link>">
-<!ENTITY ChannelHandler           "<link xlink:href='&API;channel/ChannelHandler.html'><interfacename>ChannelHandler</interfacename></link>">
-<!ENTITY ChannelHandlerContext    "<link xlink:href='&API;channel/ChannelHandlerContext.html'><interfacename>ChannelHandlerContext</interfacename></link>">
+<!ENTITY Channel                                 "<link xlink:href='&API;channel/Channel.html'><interfacename>Channel</interfacename></link>">
+<!ENTITY ChannelConfig                           "<link xlink:href='&API;channel/ChannelConfig.html'><interfacename>ChannelConfig</interfacename></link>">
+<!ENTITY ChannelFuture                           "<link xlink:href='&API;channel/ChannelFuture.html'><interfacename>ChannelFuture</interfacename></link>">
+<!ENTITY ChannelFutureListener                   "<link xlink:href='&API;channel/ChannelFutureListener.html'><interfacename>ChannelFutureListener</interfacename></link>">
+<!ENTITY ChannelHandler                          "<link xlink:href='&API;channel/ChannelHandler.html'><interfacename>ChannelHandler</interfacename></link>">
+<!ENTITY ChannelHandlerContext                   "<link xlink:href='&API;channel/ChannelHandlerContext.html'><interfacename>ChannelHandlerContext</interfacename></link>">
+<!ENTITY ChannelInboundByteHandlerAdapter        "<link xlink:href='&API;channel/ChannelInboundByteHandlerAdapter.html'><classname>ChannelInboundByteHandlerAdapter</classname></link>">
+<!ENTITY ChannelInboundMessageHandlerAdapter     "<link xlink:href='&API;channel/ChannelInboundMessageHandlerAdapter.html'><classname>ChannelInboundMessageHandlerAdapter</classname></link>">
+<!ENTITY ChannelInitializer                      "<link xlink:href='&API;channel/ChannelInitializer.html'><classname>ChannelInitializer</classname></link>">
+<!ENTITY ChannelOutboundMessageHandlerAdapter    "<link xlink:href='&API;channel/ChannelOutboundMessageHandlerAdapter.html'><classname>ChannelOutboundMessageHandlerAdapter</classname></link>">
+<!ENTITY ChannelOption            "<link xlink:href='&API;channel/ChannelOption.html'><classname>ChannelOption</classname></link>">
 <!ENTITY ChannelPipeline          "<link xlink:href='&API;channel/ChannelPipeline.html'><interfacename>ChannelPipeline</interfacename></link>">
-<!ENTITY ChannelPipelineCoverage  "<link xlink:href='&API;channel/ChannelPipelineCoverage.html'><interfacename>ChannelPipelineCoverage</interfacename></link>">
-<!ENTITY ChannelPipelineFactory   "<link xlink:href='&API;channel/ChannelPipelineFactory.html'><interfacename>ChannelPipelineFactory</interfacename></link>">
-<!ENTITY Channels                 "<link xlink:href='&API;channel/Channels.html'><classname>Channels</classname></link>">
-<!ENTITY ChannelStateEvent        "<link xlink:href='&API;channel/ChannelStateEvent.html'><interfacename>ChannelStateEvent</interfacename></link>">
-<!ENTITY ChannelUpstreamHandler   "<link xlink:href='&API;channel/ChannelUpstreamHandler.html'><interfacename>ChannelUpstreamHandler</interfacename></link>">
-<!ENTITY ExceptionEvent           "<link xlink:href='&API;channel/ExceptionEvent.html'><interfacename>ExceptionEvent</interfacename></link>">
-<!ENTITY MessageEvent             "<link xlink:href='&API;channel/MessageEvent.html'><interfacename>MessageEvent</interfacename></link>">
-<!ENTITY SimpleChannelHandler     "<link xlink:href='&API;channel/SimpleChannelHandler.html'><classname>SimpleChannelHandler</classname></link>">
+<!ENTITY EventExecutor            "<link xlink:href='&API;channel/EventExecutor.html'><interfacename>EventExecutor</interfacename></link>">
+<!ENTITY EventLoopGroup           "<link xlink:href='&API;channel/EventLoopGroup.html'><interfacename>EventLoopGroup</interfacename></link>">
 
 <!-- Types in the channel.group package -->
 
@@ -74,24 +70,23 @@
 <!ENTITY ServerSocketChannel  "<link xlink:href='&API;channel/socket/ServerSocketChannel.html'><interfacename>ServerSocketChannel</interfacename></link>">
 <!ENTITY SocketChannel        "<link xlink:href='&API;channel/socket/SocketChannel.html'><interfacename>SocketChannel</interfacename></link>">
 
-<!-- Types in the channel.socket.nio package -->
+<!-- Types in the channel.*.nio package -->
+<!ENTITY NioEventLoopGroup       "<link xlink:href='&API;channel/nio/NioEventLoopGroup.html'><classname>NioEventLoopGroup</classname></link>">
+<!ENTITY NioServerSocketChannel  "<link xlink:href='&API;channel/socket/nio/NioServerSocketChannel.html'><classname>NioServerSocketChannel</classname></link>">
 
-<!ENTITY NioClientSocketChannelFactory  "<link xlink:href='&API;channel/socket/nio/NioClientSocketChannelFactory.html'><classname>NioClientSocketChannelFactory</classname></link>">
-<!ENTITY NioServerSocketChannelFactory  "<link xlink:href='&API;channel/socket/nio/NioServerSocketChannelFactory.html'><classname>NioServerSocketChannelFactory</classname></link>">
 
 <!-- Types in the handler.codec.frame package -->
 
-<!ENTITY FrameDecoder  "<link xlink:href='&API;handler/codec/frame/FrameDecoder.html'><classname>FrameDecoder</classname></link>">
+<!ENTITY ByteToMessageDecoder  "<link xlink:href='&API;handler/codec/ByteToMessageDecoder.html'><classname>ByteToMessageDecoder</classname></link>">
+<!ENTITY MessageToByteEncoder  "<link xlink:href='&API;handler/codec/MessageToByteEncoder.html'><classname>MessageToByteEncoder</classname></link>">
+<!ENTITY ReplayingDecoder      "<link xlink:href='&API;handler/codec/ReplayingDecoder.html'><classname>ReplayingDecoder</classname></link>">
+
 
 <!-- Types in the handler.codec.protobuf package -->
 
 <!ENTITY ProtobufEncoder  "<link xlink:href='&API;handler/codec/protobuf/ProtobufEncoder.html'><classname>ProtobufEncoder</classname></link>">
 <!ENTITY ProtobufDecoder  "<link xlink:href='&API;handler/codec/protobuf/ProtobufDecoder.html'><classname>ProtobufDecoder</classname></link>">
 
-<!-- Types in the handler.codec.replay package -->
-
-<!ENTITY ReplayingDecoder  "<link xlink:href='&API;handler/codec/replay/ReplayingDecoder.html'><classname>ReplayingDecoder</classname></link>">
-<!ENTITY VoidEnum          "<link xlink:href='&API;handler/codec/replay/VoidEnum.html'><classname>VoidEnum</classname></link>">
 
 <!-- Types in the handler.ssl package -->
 <!ENTITY SslHandler  "<link xlink:href='&API;handler/ssl/SslHandler.html'><classname>SslHandler</classname></link>">
