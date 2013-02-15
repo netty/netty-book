@@ -54,10 +54,10 @@
 <!ENTITY ChannelInboundMessageHandlerAdapter     "<link xlink:href='&API;channel/ChannelInboundMessageHandlerAdapter.html'><classname>ChannelInboundMessageHandlerAdapter</classname></link>">
 <!ENTITY ChannelInitializer                      "<link xlink:href='&API;channel/ChannelInitializer.html'><classname>ChannelInitializer</classname></link>">
 <!ENTITY ChannelOutboundMessageHandlerAdapter    "<link xlink:href='&API;channel/ChannelOutboundMessageHandlerAdapter.html'><classname>ChannelOutboundMessageHandlerAdapter</classname></link>">
-<!ENTITY ChannelOption            "<link xlink:href='&API;channel/ChannelOption.html'><classname>ChannelOption</classname></link>">
-<!ENTITY ChannelPipeline          "<link xlink:href='&API;channel/ChannelPipeline.html'><interfacename>ChannelPipeline</interfacename></link>">
-<!ENTITY EventExecutor            "<link xlink:href='&API;channel/EventExecutor.html'><interfacename>EventExecutor</interfacename></link>">
-<!ENTITY EventLoopGroup           "<link xlink:href='&API;channel/EventLoopGroup.html'><interfacename>EventLoopGroup</interfacename></link>">
+<!ENTITY ChannelOption                           "<link xlink:href='&API;channel/ChannelOption.html'><classname>ChannelOption</classname></link>">
+<!ENTITY ChannelPipeline                         "<link xlink:href='&API;channel/ChannelPipeline.html'><interfacename>ChannelPipeline</interfacename></link>">
+<!ENTITY EventExecutor                           "<link xlink:href='&API;channel/EventExecutor.html'><interfacename>EventExecutor</interfacename></link>">
+<!ENTITY EventLoopGroup                          "<link xlink:href='&API;channel/EventLoopGroup.html'><interfacename>EventLoopGroup</interfacename></link>">
 
 <!-- Types in the channel.group package -->
 
